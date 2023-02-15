@@ -127,7 +127,7 @@ int main(void)
 			sum_volt += value[i].In0/10;
 			sum_temp += value[i].Temp/10;
 		}
-		Volt = sum_volt*0.8056640625;
+		Volt = (sum_volt*0.8056640625)*2;
 		TempC = ((sum_temp - 943.321)/2.5)+25;
 		TempK = TempC + 273.15;
 	}
