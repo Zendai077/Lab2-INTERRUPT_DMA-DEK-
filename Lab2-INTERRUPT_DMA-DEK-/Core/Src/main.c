@@ -45,7 +45,17 @@ DMA_HandleTypeDef hdma_adc1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+typedef struct
+{
+	uint16_t In0;
+	uint16_t Temp;
+}Buffer;
+Buffer value[10];
+float sum_volt;
+float sum_temp;
+float Volt;
+float TempC;
+float TempK;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,10 +110,27 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_ADC_Start_DMA(&hadc1, value, 20);
   while (1)
   {
     /* USER CODE END WHILE */
-
+	//Call function every 1000 ms = 1Hz
+	static uint32_t timestamp=0;
+	if(HAL_GetTick()>=timestamp)
+	{
+		timestamp =HAL_GetTick() + 1000;
+		register int i;
+		sum_volt = 0;
+		sum_temp = 0;
+		for(i=0;i<10;i++)
+		{
+			sum_volt += value[i].In0/10;
+			sum_temp += value[i].Temp/10;
+		}
+		Volt = sum_volt*0.8056640625;
+		TempC = ((sum_temp - 943.321)/2.5)+25;
+		TempK = TempC + 273.15;
+	}
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -194,8 +221,8 @@ static void MX_ADC1_Init(void)
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_0;
-  sConfig.Rank = 1;
+  sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
+  sConfig.Rank = 2;
   sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -204,8 +231,8 @@ static void MX_ADC1_Init(void)
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
-  sConfig.Rank = 2;
+  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Rank = 1;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
